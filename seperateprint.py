@@ -45,8 +45,8 @@ def seperate_page_color(image, limit=10):
 
 
 #Function to separate colored and gray pages from a PDF file
-def seperate(input_path, limit=10):
-    original_pages = image_to_pdf(input_path)
+def seperate(input_path, limit=10, dpi=300):
+    original_pages = image_to_pdf(input_path, dpi=dpi)
     color_pages = []
     gray_pages = []
     for page in original_pages:
@@ -54,9 +54,9 @@ def seperate(input_path, limit=10):
         color_pages.append(color_image)
         gray_pages.append(gray_image)
 
-    color_pages[0].save(input_path.replace(".pdf", "_color.pdf"), save_all=True, append_images=color_pages[1:])
-    gray_pages[0].save(input_path.replace(".pdf", "_gray.pdf"), save_all=True, append_images=gray_pages[1:])
+    color_pages[0].save(input_path.replace(".pdf", "_color.pdf"), save_all=True, append_images=color_pages[1:], dpi=(dpi, dpi))
+    gray_pages[0].save(input_path.replace(".pdf", "_gray.pdf"), save_all=True, append_images=gray_pages[1:], dpi=(dpi, dpi))
 
 
 
-# seperate("aaa.pdf", limit=10)
+seperate("aaa.pdf", limit=10)
