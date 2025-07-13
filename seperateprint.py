@@ -28,17 +28,14 @@ def seperate_page_color(image, limit=10, discard_empty=False):
     gray_image_data = gray_image.load()
     height,width = image.size
 
-    #iterate through each pixel
-    for pixely in range(height):
+    for pixely in range(height): #iterate through each pixel
         for pixelx in range(width):
             r,g,b = image_data[pixely, pixelx]
 
-            #remove colored pixels from gray image
-            if (abs(r-g) > limit) or (abs(r-b) > limit) or (abs(g-b) > limit):
+            if (abs(r-g) > limit) or (abs(r-b) > limit) or (abs(g-b) > limit): #remove colored pixels from gray image
                 gray_image_data[pixely, pixelx] = 255,255,255
             
-            #remove gray pixels from color image
-            else:
+            else: #remove gray pixels from color image
                 color_image_data[pixely, pixelx] = 255,255,255
     gray_image = gray_image.convert("L")
 
