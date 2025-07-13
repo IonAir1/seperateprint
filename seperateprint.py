@@ -18,8 +18,8 @@ def image_to_pdf(file_path, dpi=300):
     return pages
 
 
-#takes an image and a limit value to separate colored pixels from gray pixels.
-def seperate_page_color(image, limit=10):
+#takes an image and a limit value to separate colored pixels from gray pixels, return None if discarded
+def seperate_page_color(image, limit=10, discard_empty=False):
     color_image = image.copy()
     gray_image = image.copy()
 
@@ -34,18 +34,27 @@ def seperate_page_color(image, limit=10):
             r,g,b = image_data[pixely, pixelx]
 
             #remove colored pixels from gray image
-            if (abs(r-g) >limit) or (abs(r-b) > limit) or (abs(g-b) > limit):
+            if (abs(r-g) > limit) or (abs(r-b) > limit) or (abs(g-b) > limit):
                 gray_image_data[pixely, pixelx] = 255,255,255
             
             #remove gray pixels from color image
             else:
                 color_image_data[pixely, pixelx] = 255,255,255
     gray_image = gray_image.convert("L")
+
+    if discard_empty: #discard page if blank white page
+        extrema = gray_image.getextrema()
+        if extrema[0] > 255 - limit:
+            gray_image = None
+        extrema = color_image.convert("L").getextrema()
+        if extrema[0] > 255 - limit:
+            color_image = None
+
     return gray_image, color_image
 
 
 #Function to separate colored and gray pages from a PDF file
-def seperate(input_path, limit=10, dpi=300):
+def seperate(input_path, limit=10, dpi=300, discard_empty=False):
     print("Converting PDF to images...")
     original_pages = image_to_pdf(input_path, dpi=dpi)
     color_pages = []
@@ -53,16 +62,20 @@ def seperate(input_path, limit=10, dpi=300):
 
     for page in original_pages:
         print("Separating colors from page. Page {} of {}...".format(original_pages.index(page) + 1, len(original_pages)))
-        gray_image, color_image = seperate_page_color(page, limit=limit)
-        color_pages.append(color_image)
-        gray_pages.append(gray_image)
+        gray_image, color_image = seperate_page_color(page, limit=limit, discard_empty=discard_empty)
+        if color_image:
+            color_pages.append(color_image)
+        if gray_image:
+            gray_pages.append(gray_image)
 
     print("Saving separated pages as pdf...")
     path_cleaned = input_path.replace(".pdf", "")
-    color_pages[0].save(path_cleaned + "_color.pdf", save_all=True, append_images=color_pages[1:], dpi=(dpi, dpi))
-    gray_pages[0].save(path_cleaned + "_gray.pdf", save_all=True, append_images=gray_pages[1:], dpi=(dpi, dpi))
+    if color_pages:
+        color_pages[0].save(path_cleaned + "_color.pdf", save_all=True, append_images=color_pages[1:], dpi=(dpi, dpi))
+    if gray_pages:
+        gray_pages[0].save(path_cleaned + "_gray.pdf", save_all=True, append_images=gray_pages[1:], dpi=(dpi, dpi))
     print("Done! Separated files saved as {}_color.pdf and {}_gray.pdf".format(path_cleaned, path_cleaned))
 
 
-
-seperate("aaa.pdf", limit=10)
+file = "a.pdf"
+seperate(file, limit=30, discard_empty=True, dpi=300)
