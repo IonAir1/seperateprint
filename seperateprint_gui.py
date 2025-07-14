@@ -150,9 +150,19 @@ class Ui_MainWindow(object):
         discard_empty = self.discardButton.isChecked()
         open_output = self.openOutputButton.isChecked()
 
-        args = [
-            'python', 'seperateprint.py', input_path, str(limit), str(dpi), str(discard_empty), str(open_output)
-        ]
+        # Run the seperate() function in the subprocess using python -c
+        code = (
+            "import seperateprint; "
+            "seperateprint.seperate("
+            "\"{}\", limit={}, dpi={}, discard_empty={}, open_output={})"
+        ).format(
+            input_path.replace("\\", "\\\\").replace("\"", "\\\""),
+            limit,
+            dpi,
+            discard_empty,
+            open_output
+        )
+        args = ['python', '-c', code]
         self.progressText.setText("Processing...")
         self.newProcess = ProcessThread(args)
         self.newProcess.output_signal.connect(self.changeProgressText)
