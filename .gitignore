@@ -2,7 +2,7 @@
 *.ipynb
 exports
 *.pyc
-cfg.ini
+*.cfg
 build
 dist
 seperateprint.egg-info

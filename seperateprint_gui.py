@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import subprocess
 from PyQt5.QtCore import QThread, pyqtSignal
+import configparser
 
 
 class ProcessThread(QThread):
@@ -117,6 +118,8 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.loadConfig()
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Seperate Print"))
@@ -129,6 +132,33 @@ class Ui_MainWindow(object):
         self.progressText.setText(_translate("MainWindow", "Waiting for input..."))
         self.startButton.setText(_translate("MainWindow", "Start"))
 
+    def loadConfig(self):
+        self.config_path = os.path.join(os.path.dirname(__file__), "seperateprint.cfg")
+        self.config = configparser.ConfigParser()
+        if os.path.exists(self.config_path):
+            self.config.read(self.config_path)
+            cfg = self.config.get
+            section = "Main"
+            if self.config.has_section(section):
+                self.fileText.setText(cfg(section, "file", fallback=""))
+                self.limitSpinbox.setValue(self.config.getint(section, "limit", fallback=10))
+                self.dpiSpinbox.setValue(self.config.getint(section, "dpi", fallback=300))
+                self.discardButton.setChecked(self.config.getboolean(section, "discard_empty", fallback=False))
+                self.openOutputButton.setChecked(self.config.getboolean(section, "open_output", fallback=False))
+
+    def saveConfig(self):
+        section = "Main"
+        if not hasattr(self, "config"):
+            self.config = configparser.ConfigParser()
+        if not self.config.has_section(section):
+            self.config.add_section(section)
+        self.config.set(section, "file", self.fileText.text())
+        self.config.set(section, "limit", str(self.limitSpinbox.value()))
+        self.config.set(section, "dpi", str(self.dpiSpinbox.value()))
+        self.config.set(section, "discard_empty", str(self.discardButton.isChecked()))
+        self.config.set(section, "open_output", str(self.openOutputButton.isChecked()))
+        with open(self.config_path, "w") as f:
+            self.config.write(f)
 
     def openFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
@@ -168,14 +198,13 @@ class Ui_MainWindow(object):
         self.newProcess.output_signal.connect(self.changeProgressText)
         self.newProcess.error_signal.connect(self.showErrorText)
         self.newProcess.start()
+        self.saveConfig()
 
     def changeProgressText(self, text):
         self.progressText.setText(text)
 
     def showErrorText(self, text):
         self.progressText.setText("Error: " + text)
-
-
 
 
 if __name__ == "__main__":
