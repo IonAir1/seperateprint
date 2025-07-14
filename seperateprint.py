@@ -1,5 +1,6 @@
 from PIL import Image
 import pymupdf
+import webbrowser
 
 
 
@@ -51,7 +52,7 @@ def seperate_page_color(image, limit=10, discard_empty=False):
 
 
 #Function to separate colored and gray pages from a PDF file
-def seperate(input_path, limit=10, dpi=300, discard_empty=False):
+def seperate(input_path, limit=10, dpi=300, discard_empty=False, open_output=True):
     print("Converting PDF to images...")
     original_pages = image_to_pdf(input_path, dpi=dpi)
     color_pages = []
@@ -72,6 +73,10 @@ def seperate(input_path, limit=10, dpi=300, discard_empty=False):
     if gray_pages:
         gray_pages[0].save(path_cleaned + "_gray.pdf", save_all=True, append_images=gray_pages[1:], dpi=(dpi, dpi))
     print("Done! Separated files saved as {}_color.pdf and {}_gray.pdf".format(path_cleaned, path_cleaned))
+
+    if open_output:
+        webbrowser.open(path_cleaned + "_color.pdf")
+        webbrowser.open(path_cleaned + "_gray.pdf")
 
 
 file = "a.pdf"
